@@ -1,22 +1,15 @@
 import { MyContext } from '../context';
+import { resolveUser, formatTaskItem, buildPendingTaskKeyboard } from '../utils/format.util';
 import { logger } from '../../utils/logger';
 
 export const listCommand = async (ctx: MyContext): Promise<void> => {
-  const telegramUserId = ctx.from?.id.toString();
-
-  if (!telegramUserId) {
+  const user = await resolveUser(ctx);
+  if (!user) {
     await ctx.reply('Gagal mendapatkan informasi akun Telegram Anda.');
     return;
   }
 
   try {
-    // Get user to find their internal UUID
-    const user = await ctx.userService.upsertUser({
-      telegram_user_id: telegramUserId,
-      display_name: ctx.from?.first_name || 'User',
-      timezone: 'Asia/Makassar',
-    });
-
     const result = await ctx.taskService.listTasks({
       user_id: user.id,
       status: 'pending',
@@ -29,15 +22,18 @@ export const listCommand = async (ctx: MyContext): Promise<void> => {
       return;
     }
 
-    let message = '📋 *Daftar Task Aktif:*\n\n';
-    result.tasks.forEach((task: any, index: number) => {
-      const deadline = task.deadline_at 
-        ? `\n⏰ Deadline: ${new Date(task.deadline_at).toLocaleString('id-ID')}` 
-        : '';
-      message += `${index + 1}. *${task.title}*${deadline}\n\n`;
-    });
+    await ctx.reply(
+      `📋 *DAFTAR TASK AKTIF* (${result.tasks.length} dari ${result.pagination.total} task)`,
+      { parse_mode: 'Markdown' }
+    );
 
-    await ctx.reply(message, { parse_mode: 'Markdown' });
+    for (let i = 0; i < result.tasks.length; i++) {
+      const task = result.tasks[i]!;
+      await ctx.reply(formatTaskItem(task, i), {
+        parse_mode: 'Markdown',
+        ...buildPendingTaskKeyboard(task.id),
+      });
+    }
   } catch (err) {
     logger.error({ err }, 'Error in /tasks command');
     await ctx.reply('Maaf, terjadi kesalahan saat mengambil daftar task.');

@@ -27,10 +27,10 @@ async function main() {
   
   const notificationService = new TelegramNotificationService(bot);
 
-  const { app, userService, taskService, reminderRepo } = createApp(notificationService);
+  const { app, userService, taskService, reminderRepo, reminderService } = createApp(notificationService);
 
   // Setup commands and middleware for bot
-  setupBot(bot, userService, taskService);
+  setupBot(bot, userService, taskService, reminderService, reminderRepo);
 
   // ─── Start reminder scheduler ─────────────────────────────────────────────────
   const reminderJob = new ReminderJob(reminderRepo, notificationService);

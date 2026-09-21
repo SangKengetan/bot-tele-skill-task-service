@@ -1,6 +1,8 @@
 import { Context, Scenes } from 'telegraf';
 import { TaskService } from '../services/task.service';
 import { UserService } from '../services/user.service';
+import { ReminderService } from '../services/reminder.service';
+import { ReminderRepository } from '../repositories/reminder.repository';
 
 interface WizardSession extends Scenes.WizardSessionData {
   taskData: {
@@ -20,4 +22,6 @@ export interface MyContext extends Context {
   // Dependency Injection
   taskService: TaskService;
   userService: UserService;
+  reminderService: ReminderService;
+  reminderRepo: ReminderRepository;
 }

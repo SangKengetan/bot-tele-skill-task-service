@@ -1,6 +1,7 @@
 import { Telegraf } from 'telegraf';
 import { ReminderWithContext } from '../types/reminder.types';
 import { logger } from '../utils/logger';
+import { buildReminderNotificationKeyboard } from '../bot/utils/format.util';
 
 /**
  * Interface that defines the notification contract.
@@ -27,6 +28,7 @@ export class TelegramNotificationService implements NotificationService {
       
       await this.bot.telegram.sendMessage(reminder.telegram_user_id, message, {
         parse_mode: 'Markdown',
+        ...buildReminderNotificationKeyboard(reminder.task_id),
       });
 
       logger.info(
@@ -48,4 +50,3 @@ export class TelegramNotificationService implements NotificationService {
     }
   }
 }
-

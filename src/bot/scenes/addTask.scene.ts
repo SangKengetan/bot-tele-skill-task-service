@@ -1,6 +1,7 @@
 import { Scenes } from 'telegraf';
 import { MyContext } from '../context';
 import { logger } from '../../utils/logger';
+import { buildReminderOptionsKeyboard, formatDate, escapeMarkdown } from '../utils/format.util';
 
 // 1. Step: Ask for Title
 const askTitle = async (ctx: MyContext) => {
@@ -28,7 +29,7 @@ const askDeadline = async (ctx: MyContext) => {
   return ctx.wizard.next();
 };
 
-// 3. Step: Save Deadline, Save Task to DB
+// 3. Step: Save Deadline, Save Task to DB, Ask for Reminder
 const saveTask = async (ctx: MyContext) => {
   if (!ctx.message || !('text' in ctx.message)) {
     await ctx.reply('Tolong kirimkan dalam bentuk teks ya.');
@@ -74,7 +75,22 @@ const saveTask = async (ctx: MyContext) => {
       deadline_at: deadlineAt,
     });
 
-    await ctx.reply(`✅ Task berhasil dibuat!\n\n📌 Judul: ${task.title}\n⏰ Deadline: ${deadlineAt ? new Date(deadlineAt).toLocaleString('id-ID') : 'Tidak ada'}`);
+    const deadlineDisplay = deadlineAt ? formatDate(new Date(deadlineAt)) : 'Tidak ada';
+
+    // If task has a deadline, offer reminder options
+    if (deadlineAt) {
+      await ctx.reply(
+        `✅ Task berhasil dibuat\\!\n\n📌 Judul: *${escapeMarkdown(task.title)}*\n⏰ Deadline: ${deadlineDisplay}\n\n🔔 Ingin disetelkan pengingat?`,
+        {
+          parse_mode: 'Markdown',
+          ...buildReminderOptionsKeyboard(task.id),
+        }
+      );
+    } else {
+      await ctx.reply(
+        `✅ Task berhasil dibuat!\n\n📌 Judul: ${task.title}\n⏰ Deadline: Tidak ada`
+      );
+    }
   } catch (err: any) {
     logger.error({ err }, 'Error saving task from wizard');
     await ctx.reply('Maaf, terjadi kesalahan saat menyimpan task.');
