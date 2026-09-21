@@ -26,10 +26,11 @@ export function validate(schema: ZodSchema, target: ValidationTarget = 'body') {
 }
 
 function formatZodErrors(error: ZodError): string {
-  return error.errors
-    .map((e) => {
-      const field = e.path.join('.');
-      return field ? `${field}: ${e.message}` : e.message;
-    })
-    .join('; ');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const issues = (error as any).issues || (error as any).errors || [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return issues.map((e: any) => {
+    const field = e.path ? e.path.join('.') : '';
+    return field ? `${field}: ${e.message}` : e.message;
+  }).join('; ');
 }

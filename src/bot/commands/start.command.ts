@@ -1,12 +1,13 @@
 import { MyContext } from '../context';
 import { logger } from '../../utils/logger';
 
-export const startCommand = async (ctx: MyContext) => {
+export const startCommand = async (ctx: MyContext): Promise<void> => {
   const telegramUserId = ctx.from?.id.toString();
   const displayName = ctx.from?.first_name || 'User';
 
   if (!telegramUserId) {
-    return ctx.reply('Gagal mendapatkan informasi akun Telegram Anda.');
+    await ctx.reply('Gagal mendapatkan informasi akun Telegram Anda.');
+    return;
   }
 
   try {
@@ -14,6 +15,7 @@ export const startCommand = async (ctx: MyContext) => {
     await ctx.userService.upsertUser({
       telegram_user_id: telegramUserId,
       display_name: displayName,
+      timezone: 'Asia/Makassar',
     });
 
     await ctx.reply(

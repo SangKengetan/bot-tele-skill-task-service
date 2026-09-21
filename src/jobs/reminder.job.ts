@@ -1,4 +1,4 @@
-import cron from 'node-cron';
+import cron, { ScheduledTask } from 'node-cron';
 import { ReminderRepository } from '../repositories/reminder.repository';
 import { NotificationService } from '../services/notification.service';
 import { logger } from '../utils/logger';
@@ -16,7 +16,7 @@ import { env } from '../config/env';
  * - NotificationService is injected — Task Service has no knowledge of Telegram/Hermes
  */
 export class ReminderJob {
-  private task: cron.ScheduledTask | null = null;
+  private task: ScheduledTask | null = null;
   private isRunning = false;
 
   constructor(

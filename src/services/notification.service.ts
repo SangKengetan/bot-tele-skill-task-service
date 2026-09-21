@@ -13,7 +13,8 @@ export interface NotificationService {
  * Real implementation — sends a message via Telegram bot.
  */
 export class TelegramNotificationService implements NotificationService {
-  constructor(private readonly bot: Telegraf) {}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  constructor(private readonly bot: Telegraf<any>) {}
 
   async sendReminder(reminder: ReminderWithContext): Promise<void> {
     try {
@@ -22,7 +23,7 @@ export class TelegramNotificationService implements NotificationService {
         return;
       }
 
-      const message = `🔔 *PENGINGAT TASK*\n\n📌 *Judul:* ${reminder.task_title}\n⏰ *Deadline:* ${reminder.deadline_at ? new Date(reminder.deadline_at).toLocaleString('id-ID') : 'Tidak ada'}\n\nSemangat mengerjakannya! 💪`;
+      const message = `🔔 *PENGINGAT TASK*\n\n📌 *Judul:* ${reminder.task_title}\n⏰ *Waktu Pengingat:* ${reminder.remind_at ? new Date(reminder.remind_at).toLocaleString('id-ID') : 'Sekarang'}\n\nSemangat mengerjakannya! 💪`;
       
       await this.bot.telegram.sendMessage(reminder.telegram_user_id, message, {
         parse_mode: 'Markdown',
@@ -47,3 +48,4 @@ export class TelegramNotificationService implements NotificationService {
     }
   }
 }
+

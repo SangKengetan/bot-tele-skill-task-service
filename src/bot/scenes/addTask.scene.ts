@@ -63,12 +63,14 @@ const saveTask = async (ctx: MyContext) => {
     const user = await ctx.userService.upsertUser({
       telegram_user_id: telegramUserId,
       display_name: displayName,
+      timezone: 'Asia/Makassar',
     });
 
     // Create Task
     const task = await ctx.taskService.createTask({
       user_id: user.id,
       title: ctx.scene.session.taskData.title!,
+      priority: 'medium',
       deadline_at: deadlineAt,
     });
 
