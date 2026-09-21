@@ -4,14 +4,31 @@ import { env } from '../config/env';
 import { addTaskWizard } from './scenes/addTask.scene';
 import { startCommand } from './commands/start.command';
 import { listCommand } from './commands/list.command';
+import { todayCommand } from './commands/today.command';
+import { overdueCommand } from './commands/overdue.command';
+import { completedCommand } from './commands/completed.command';
+import { statsCommand } from './commands/stats.command';
+import { searchCommand } from './commands/search.command';
+import { remindersCommand } from './commands/reminders.command';
+import { handleCallbackQuery } from './handlers/callbacks.handler';
 import { UserService } from '../services/user.service';
 import { TaskService } from '../services/task.service';
+import { ReminderService } from '../services/reminder.service';
+import { ReminderRepository } from '../repositories/reminder.repository';
 
-export const setupBot = (bot: Telegraf<MyContext>, userService: UserService, taskService: TaskService): Telegraf<MyContext> => {
+export const setupBot = (
+  bot: Telegraf<MyContext>,
+  userService: UserService,
+  taskService: TaskService,
+  reminderService: ReminderService,
+  reminderRepo: ReminderRepository
+): Telegraf<MyContext> => {
   // Inject services into bot context first
   bot.use(async (ctx, next) => {
     ctx.userService = userService;
     ctx.taskService = taskService;
+    ctx.reminderService = reminderService;
+    ctx.reminderRepo = reminderRepo;
     return next();
   });
 
@@ -26,12 +43,21 @@ export const setupBot = (bot: Telegraf<MyContext>, userService: UserService, tas
   bot.command('start', startCommand);
   bot.command('tasks', listCommand);
   bot.command('list', listCommand);
+  bot.command('today', todayCommand);
+  bot.command('overdue', overdueCommand);
+  bot.command('completed', completedCommand);
+  bot.command('stats', statsCommand);
+  bot.command('search', searchCommand);
+  bot.command('reminders', remindersCommand);
   
   // Enter wizard command
   bot.command('addtask', (ctx) => ctx.scene.enter('ADD_TASK_WIZARD'));
 
+  // Register callback query handler for inline keyboards
+  bot.on('callback_query', handleCallbackQuery);
+
   // Help fallback
-  bot.help((ctx) => ctx.reply('Ketik /start untuk melihat menu, atau /addtask untuk menambah tugas.'));
+  bot.help((ctx) => ctx.reply('Ketik /start untuk melihat menu lengkap perintah yang tersedia.'));
 
   return bot;
 };

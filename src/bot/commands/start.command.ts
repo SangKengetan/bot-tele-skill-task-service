@@ -22,8 +22,16 @@ export const startCommand = async (ctx: MyContext): Promise<void> => {
       `Halo ${displayName}! Selamat datang di Task Manager Bot. 🤖\n\n` +
       `Saya bisa membantu Anda mencatat tugas dan memberikan pengingat.\n\n` +
       `Gunakan perintah berikut:\n` +
+      `📌 *Kelola Task:*\n` +
       `/addtask - Menambah task baru\n` +
-      `/tasks - Melihat daftar task\n`
+      `/tasks - Melihat daftar task aktif\n` +
+      `/today - Task hari ini\n` +
+      `/overdue - Task yang telat\n` +
+      `/completed - Riwayat task selesai\n` +
+      `/search <kata> - Cari task\n\n` +
+      `📊 *Lainnya:*\n` +
+      `/reminders - Kelola pengingat aktif\n` +
+      `/stats - Ringkasan statistik\n`
     );
   } catch (err) {
     logger.error({ err }, 'Error in /start command');
