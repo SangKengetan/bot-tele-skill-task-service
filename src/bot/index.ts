@@ -4,9 +4,16 @@ import { env } from '../config/env';
 import { addTaskWizard } from './scenes/addTask.scene';
 import { startCommand } from './commands/start.command';
 import { listCommand } from './commands/list.command';
+import { UserService } from '../services/user.service';
+import { TaskService } from '../services/task.service';
 
-export const setupBot = (): Telegraf<MyContext> => {
-  const bot = new Telegraf<MyContext>(env.TELEGRAM_BOT_TOKEN);
+export const setupBot = (bot: Telegraf<MyContext>, userService: UserService, taskService: TaskService): Telegraf<MyContext> => {
+  // Inject services into bot context first
+  bot.use(async (ctx, next) => {
+    ctx.userService = userService;
+    ctx.taskService = taskService;
+    return next();
+  });
 
   // Initialize stage with scenes
   const stage = new Scenes.Stage<MyContext>([addTaskWizard]);

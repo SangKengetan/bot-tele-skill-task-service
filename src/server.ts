@@ -8,6 +8,8 @@ import { ReminderRepository } from './repositories/reminder.repository';
 import { TelegramNotificationService } from './services/notification.service';
 import { setupBot } from './bot';
 import { db } from './config/database';
+import { Telegraf } from 'telegraf';
+import { MyContext } from './bot/context';
 
 async function main() {
   // Verify database connection before starting
@@ -20,17 +22,15 @@ async function main() {
   }
 
   // ─── Initialize Bot ──────────────────────────────────────────────────────────
-  const bot = setupBot();
+  const bot = new Telegraf<MyContext>(env.TELEGRAM_BOT_TOKEN);
+
+  
   const notificationService = new TelegramNotificationService(bot);
 
   const { app, userService, taskService, reminderRepo } = createApp(notificationService);
 
-  // Inject services into bot context
-  bot.use(async (ctx, next) => {
-    ctx.userService = userService;
-    ctx.taskService = taskService;
-    return next();
-  });
+  // Setup commands and middleware for bot
+  setupBot(bot, userService, taskService);
 
   // ─── Start reminder scheduler ─────────────────────────────────────────────────
   const reminderJob = new ReminderJob(reminderRepo, notificationService);
