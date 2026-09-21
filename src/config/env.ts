@@ -6,6 +6,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   DATABASE_URL: z.string().url('DATABASE_URL must be a valid PostgreSQL connection string'),
   TASK_SERVICE_API_KEY: z.string().min(16, 'API key must be at least 16 characters'),
+  TELEGRAM_BOT_TOKEN: z.string().min(1, 'TELEGRAM_BOT_TOKEN is required'),
   DEFAULT_TIMEZONE: z.string().default('Asia/Makassar'),
   REMINDER_INTERVAL_SECONDS: z.coerce.number().int().min(10).max(3600).default(60),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().default(60_000),

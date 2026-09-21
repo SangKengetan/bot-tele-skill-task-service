@@ -5,7 +5,8 @@ import { closeDb, checkDbConnection } from './config/database';
 import { logger } from './utils/logger';
 import { ReminderJob } from './jobs/reminder.job';
 import { ReminderRepository } from './repositories/reminder.repository';
-import { NotificationService } from './services/notification.service';
+import { TelegramNotificationService } from './services/notification.service';
+import { setupBot } from './bot';
 import { db } from './config/database';
 
 async function main() {
@@ -18,20 +19,32 @@ async function main() {
     process.exit(1);
   }
 
-  const app = createApp();
+  // ─── Initialize Bot ──────────────────────────────────────────────────────────
+  const bot = setupBot();
+  const notificationService = new TelegramNotificationService(bot);
+
+  const { app, userService, taskService, reminderRepo } = createApp(notificationService);
+
+  // Inject services into bot context
+  bot.use(async (ctx, next) => {
+    ctx.userService = userService;
+    ctx.taskService = taskService;
+    return next();
+  });
 
   // ─── Start reminder scheduler ─────────────────────────────────────────────────
-  const reminderRepo = new ReminderRepository(db);
-  const notificationService = app.locals['notificationService'] as NotificationService;
   const reminderJob = new ReminderJob(reminderRepo, notificationService);
   reminderJob.start();
 
-  // ─── Start HTTP server ────────────────────────────────────────────────────────
   const server = app.listen(env.PORT, () => {
     logger.info(
       { port: env.PORT, env: env.NODE_ENV },
       `Task Service started on port ${env.PORT}`
     );
+  });
+
+  bot.launch(() => {
+    logger.info('Telegram Bot is running');
   });
 
   // ─── Graceful shutdown ────────────────────────────────────────────────────────
@@ -42,8 +55,9 @@ async function main() {
     server.close(async () => {
       logger.info('HTTP server closed');
 
-      // Stop scheduler
+      // Stop scheduler and bot
       reminderJob.stop();
+      bot.stop('SIGINT');
 
       // Close database pool
       await closeDb();

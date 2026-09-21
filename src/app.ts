@@ -18,7 +18,7 @@ import { ReminderRepository } from './repositories/reminder.repository';
 import { UserService } from './services/user.service';
 import { TaskService } from './services/task.service';
 import { ReminderService } from './services/reminder.service';
-import { MockNotificationService } from './services/notification.service';
+import { NotificationService } from './services/notification.service';
 
 // Controllers
 import { UserController } from './controllers/user.controller';
@@ -35,7 +35,12 @@ import { createReminderRoutes } from './routes/reminder.routes';
 import { authMiddleware } from './middleware/auth.middleware';
 import { errorMiddleware } from './middleware/error.middleware';
 
-export function createApp(): Application {
+export function createApp(notificationService: NotificationService): {
+  app: Application;
+  userService: UserService;
+  taskService: TaskService;
+  reminderRepo: ReminderRepository;
+} {
   const app = express();
 
   // ─── Security middleware ──────────────────────────────────────────────────────
@@ -85,7 +90,6 @@ export function createApp(): Application {
   const userService = new UserService(userRepo);
   const taskService = new TaskService(taskRepo, historyRepo, userRepo);
   const reminderService = new ReminderService(reminderRepo, taskRepo, historyRepo, userRepo);
-  const notificationService = new MockNotificationService();
 
   const userController = new UserController(userService);
   const taskController = new TaskController(taskService, reminderRepo);
@@ -112,5 +116,5 @@ export function createApp(): Application {
   // ─── Global error handler (must be last) ─────────────────────────────────────
   app.use(errorMiddleware);
 
-  return app;
+  return { app, userService, taskService, reminderRepo };
 }
