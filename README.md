@@ -1,23 +1,51 @@
-# Task Service API
+# Task Service API & Telegram Bot
 
-A standalone Node.js REST API backend for managing tasks, scheduling, deadlines, and reminders. Designed to be consumed by external applications (like the Hermes AI Assistant via Telegram) over HTTP.
+A combined Node.js REST API backend and interactive Telegram Bot for managing tasks, scheduling, deadlines, and reminders. 
+
+## Key Features
+
+1.  **REST API Backend:** A robust REST API for managing tasks and reminders.
+2.  **Integrated Telegram Bot:** A built-in Telegram Bot (using `telegraf`) with interactive commands and inline keyboards for managing tasks directly from chat.
+3.  **Background Scheduler:** A `node-cron` job that atomically claims and sends due reminders.
+4.  **Interactive Notifications:** Reminder notifications include inline buttons to instantly mark tasks as completed or snooze them.
 
 ## Architecture
 
 ```
-Routes (Express) 
-  → Middleware (Auth/Validation via Zod) 
-  → Controllers (Thin) 
-  → Services (Business Logic) 
-  → Repositories (Raw SQL via `pg`) 
-  → PostgreSQL Database
+Telegram Bot (Telegraf) ──┐
+                          ▼
+Routes (Express) ──► Controllers ──► Services ──► Repositories (Raw SQL via pg) ──► PostgreSQL
+                          ▲
+Background Scheduler ─────┘
 ```
 
 *   **Language:** Node.js (v22+) + TypeScript
 *   **Database:** PostgreSQL (using `pg` driver, no ORM)
 *   **Validation:** Zod
 *   **Logging:** Pino (structured JSON logging)
-*   **Scheduler:** `node-cron` with atomic database claiming
+*   **Bot Framework:** Telegraf
+
+## Telegram Bot Commands & Features
+
+The integrated Telegram bot provides a rich, interactive experience:
+
+*   `/start` - Show the main menu and available commands.
+*   `/addtask` - Interactive wizard to create a new task with a title, deadline, and optional reminder.
+*   `/tasks` or `/list` - View all active (pending) tasks.
+*   `/today` - View tasks scheduled or due today.
+*   `/overdue` - View tasks that have passed their deadline.
+*   `/completed` - View recently completed tasks.
+*   `/stats` - View a summary of task statistics (total, pending, completed, overdue, completion rate).
+*   `/search <keyword>` - Search for tasks by title or description.
+*   `/reminders` - View and manage active reminders.
+
+**Interactive Inline Keyboards:**
+Most commands return messages with inline buttons, allowing you to take immediate action without typing UUIDs:
+*   ✅ Mark tasks as completed
+*   🗑️ Delete tasks (with confirmation)
+*   ⏰ Set, cancel, or snooze reminders
+*   📋 View task details
+*   🔄 Reopen completed or cancelled tasks
 
 ## Installation & Setup
 
@@ -32,7 +60,7 @@ Routes (Express)
     ```
 
 3.  **Environment Setup**
-    Copy the example `.env` file and modify as needed:
+    Copy the example `.env` file and modify as needed (ensure `TELEGRAM_BOT_TOKEN` is set!):
     ```bash
     cp .env.example .env
     ```
@@ -140,25 +168,3 @@ curl -X POST http://localhost:3000/api/v1/tasks/TASK_UUID_HERE/reminders \
     "remind_at": "2026-09-08T19:00:00+08:00"
   }'
 ```
-
-## Hermes Integration
-
-Task Service is entirely unaware of Telegram or AI logic. Hermes (the AI assistant) acts as the client.
-
-**Workflow Example:**
-
-1.  **User (Telegram):** "Besok jam 8 saya harus revisi Bab 4"
-2.  **Hermes AI:** Parses natural language into a structured JSON payload identifying intent `create_task`.
-3.  **Hermes Backend:** Makes an HTTP `POST /api/v1/tasks` call to the Task Service with `X-API-Key`.
-4.  **Task Service:** Validates the input, inserts the task into PostgreSQL, records history, and returns a JSON response.
-5.  **Hermes AI:** Translates the JSON response ("success: true", Task details) into natural language ("Baik, revisi Bab 4 sudah dicatat...").
-
-### Reminder Scheduler
-
-The Task Service contains a `node-cron` background job running every minute (configurable via `REMINDER_INTERVAL_SECONDS`).
-
-1. It queries PostgreSQL for due reminders (`remind_at <= NOW() AND status = 'pending'`).
-2. It atomically marks them as `sent`.
-3. It passes the reminder data to the `NotificationService` interface.
-4. *For MVP:* A mock logger implementation is used.
-5. *Future Integration:* Hermes will implement `NotificationService` to push the payload directly via the Telegram API, or the Task Service will fire a webhook back to Hermes.
