@@ -31,6 +31,7 @@ The integrated Telegram bot provides a rich, interactive experience:
 
 *   `/start` - Show the main menu and available commands.
 *   `/addtask` - Interactive wizard to create a new task with a title, deadline, and optional reminder.
+*   `/addharian` - Interactive wizard to add multiple tasks for a specific date at once.
 *   `/tasks` or `/list` - View all active (pending) tasks.
 *   `/today` - View tasks scheduled or due today.
 *   `/overdue` - View tasks that have passed their deadline.

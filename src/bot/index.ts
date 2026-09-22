@@ -61,5 +61,19 @@ export const setupBot = (
   // Help fallback
   bot.help((ctx) => ctx.reply('Ketik /start untuk melihat menu lengkap perintah yang tersedia.'));
 
+  // Set Telegram Menu Commands
+  bot.telegram.setMyCommands([
+    { command: 'start', description: 'Lihat menu utama' },
+    { command: 'addtask', description: 'Tambah task baru' },
+    { command: 'addharian', description: 'Tambah task harian sekaligus' },
+    { command: 'tasks', description: 'Daftar semua task aktif' },
+    { command: 'today', description: 'Task hari ini' },
+    { command: 'overdue', description: 'Task yang telat' },
+    { command: 'completed', description: 'Task selesai' },
+    { command: 'stats', description: 'Statistik' },
+    { command: 'search', description: 'Cari task' },
+    { command: 'reminders', description: 'Kelola pengingat' }
+  ]).catch(err => console.error('Failed to set commands menu:', err));
+
   return bot;
 };

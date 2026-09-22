@@ -24,6 +24,7 @@ export const startCommand = async (ctx: MyContext): Promise<void> => {
       `Gunakan perintah berikut:\n` +
       `📌 *Kelola Task:*\n` +
       `/addtask - Menambah task baru\n` +
+      `/addharian - Menambah task harian sekaligus\n` +
       `/tasks - Melihat daftar task aktif\n` +
       `/today - Task hari ini\n` +
       `/overdue - Task yang telat\n` +
