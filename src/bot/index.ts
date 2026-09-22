@@ -2,6 +2,7 @@ import { Telegraf, Scenes, session } from 'telegraf';
 import { MyContext } from './context';
 import { env } from '../config/env';
 import { addTaskWizard } from './scenes/addTask.scene';
+import { addHarianWizard } from './scenes/addHarian.scene';
 import { startCommand } from './commands/start.command';
 import { listCommand } from './commands/list.command';
 import { todayCommand } from './commands/today.command';
@@ -33,7 +34,7 @@ export const setupBot = (
   });
 
   // Initialize stage with scenes
-  const stage = new Scenes.Stage<MyContext>([addTaskWizard]);
+  const stage = new Scenes.Stage<MyContext>([addTaskWizard, addHarianWizard]);
 
   // Apply middlewares
   bot.use(session());
@@ -52,6 +53,7 @@ export const setupBot = (
   
   // Enter wizard command
   bot.command('addtask', (ctx) => ctx.scene.enter('ADD_TASK_WIZARD'));
+  bot.command('addharian', (ctx) => ctx.scene.enter('ADD_HARIAN_WIZARD'));
 
   // Register callback query handler for inline keyboards
   bot.on('callback_query', handleCallbackQuery);

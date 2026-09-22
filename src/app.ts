@@ -39,6 +39,7 @@ export function createApp(notificationService: NotificationService): {
   app: Application;
   userService: UserService;
   taskService: TaskService;
+  taskRepo: TaskRepository;
   reminderRepo: ReminderRepository;
   reminderService: ReminderService;
 } {
@@ -117,5 +118,5 @@ export function createApp(notificationService: NotificationService): {
   // ─── Global error handler (must be last) ─────────────────────────────────────
   app.use(errorMiddleware);
 
-  return { app, userService, taskService, reminderRepo, reminderService };
+  return { app, userService, taskService, taskRepo, reminderRepo, reminderService };
 }

@@ -4,6 +4,7 @@ import { env } from './config/env';
 import { closeDb, checkDbConnection } from './config/database';
 import { logger } from './utils/logger';
 import { ReminderJob } from './jobs/reminder.job';
+import { DailyReminderJob } from './jobs/dailyReminder.job';
 import { ReminderRepository } from './repositories/reminder.repository';
 import { TelegramNotificationService } from './services/notification.service';
 import { setupBot } from './bot';
@@ -27,7 +28,7 @@ async function main() {
   
   const notificationService = new TelegramNotificationService(bot);
 
-  const { app, userService, taskService, reminderRepo, reminderService } = createApp(notificationService);
+  const { app, userService, taskService, reminderRepo, reminderService, taskRepo } = createApp(notificationService);
 
   // Setup commands and middleware for bot
   setupBot(bot, userService, taskService, reminderService, reminderRepo);
@@ -35,6 +36,9 @@ async function main() {
   // ─── Start reminder scheduler ─────────────────────────────────────────────────
   const reminderJob = new ReminderJob(reminderRepo, notificationService);
   reminderJob.start();
+
+  const dailyReminderJob = new DailyReminderJob(taskRepo, notificationService);
+  dailyReminderJob.start();
 
   const server = app.listen(env.PORT, () => {
     logger.info(
@@ -57,6 +61,7 @@ async function main() {
 
       // Stop scheduler and bot
       reminderJob.stop();
+      dailyReminderJob.stop();
       bot.stop('SIGINT');
 
       // Close database pool

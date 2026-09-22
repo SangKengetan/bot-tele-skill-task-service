@@ -315,4 +315,19 @@ export class TaskRepository {
     const result = await this.pool.query('DELETE FROM tasks WHERE id = $1', [id]);
     return (result.rowCount ?? 0) > 0;
   }
+
+  async findAllTodayPending(): Promise<(Task & { telegram_user_id: string })[]> {
+    const result = await this.pool.query<Task & { telegram_user_id: string }>(
+      `SELECT t.*, u.telegram_user_id 
+       FROM tasks t
+       JOIN users u ON t.user_id = u.id
+       WHERE (
+         DATE(t.scheduled_at) = CURRENT_DATE OR
+         DATE(t.deadline_at) = CURRENT_DATE
+       )
+       AND t.status = 'pending'
+       ORDER BY t.user_id, t.deadline_at ASC NULLS LAST`
+    );
+    return result.rows;
+  }
 }

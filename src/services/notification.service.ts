@@ -8,6 +8,7 @@ import { buildReminderNotificationKeyboard } from '../bot/utils/format.util';
  */
 export interface NotificationService {
   sendReminder(reminder: ReminderWithContext): Promise<void>;
+  sendDailySummary(telegramUserId: string, tasks: { title: string }[]): Promise<void>;
 }
 
 /**
@@ -46,6 +47,34 @@ export class TelegramNotificationService implements NotificationService {
           err: error,
         },
         'Failed to send reminder notification via Telegram'
+      );
+    }
+  }
+
+  async sendDailySummary(telegramUserId: string, tasks: { title: string }[]): Promise<void> {
+    try {
+      if (tasks.length === 0) return;
+
+      let message = `📋 *Pengingat Harian!*\n\nKamu memiliki *${tasks.length} task* yang harus diselesaikan hari ini:\n`;
+      tasks.forEach((task, index) => {
+        // Escape markdown for title to prevent formatting issues
+        const escapedTitle = task.title.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
+        message += `${index + 1}\\. ${escapedTitle}\n`;
+      });
+      message += `\nSemangat\\! 🔥`;
+
+      await this.bot.telegram.sendMessage(telegramUserId, message, {
+        parse_mode: 'MarkdownV2',
+      });
+
+      logger.info(
+        { telegramUserId, taskCount: tasks.length },
+        'Daily summary notification sent successfully'
+      );
+    } catch (error) {
+      logger.error(
+        { err: error, telegramUserId },
+        'Failed to send daily summary notification via Telegram'
       );
     }
   }
