@@ -19,8 +19,8 @@ export class DailyReminderJob {
   ) {}
 
   start(): void {
-    // Run at 08:00, 11:00, 16:00, 21:00 in Asia/Makassar
-    const cronExpression = '0 8,11,16,21 * * *';
+    // Run at 08:00, 11:00, 16:00, 17:00, 21:00 in Asia/Makassar
+    const cronExpression = '0 8,11,16,17,21 * * *';
 
     logger.info(
       { cronExpression, timezone: 'Asia/Makassar' },

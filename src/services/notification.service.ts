@@ -55,17 +55,13 @@ export class TelegramNotificationService implements NotificationService {
     try {
       if (tasks.length === 0) return;
 
-      let message = `📋 *Pengingat Harian!*\n\nKamu memiliki *${tasks.length} task* yang harus diselesaikan hari ini:\n`;
+      let message = `📋 Pengingat Harian!\n\nKamu memiliki ${tasks.length} task yang harus diselesaikan hari ini:\n\n`;
       tasks.forEach((task, index) => {
-        // Escape markdown for title to prevent formatting issues
-        const escapedTitle = task.title.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
-        message += `${index + 1}\\. ${escapedTitle}\n`;
+        message += `${index + 1}. ${task.title}\n`;
       });
-      message += `\nSemangat\\! 🔥`;
+      message += `\nSemangat! 🔥`;
 
-      await this.bot.telegram.sendMessage(telegramUserId, message, {
-        parse_mode: 'MarkdownV2',
-      });
+      await this.bot.telegram.sendMessage(telegramUserId, message);
 
       logger.info(
         { telegramUserId, taskCount: tasks.length },
