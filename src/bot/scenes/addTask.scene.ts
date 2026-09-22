@@ -29,8 +29,8 @@ function parseDeadlineInput(input: string): Date | null | undefined {
     return d;
   }
 
-  // "hari ini HH:MM" → today at specified time
-  const hariIniTimeMatch = lower.match(/^(hari ini|hariini|today)\s+(\d{1,2}):(\d{2})$/);
+  // "hari ini HH:MM" or "hari ini jam HH:MM" → today at specified time
+  const hariIniTimeMatch = lower.match(/^(hari ini|hariini|today)\s+(?:jam\s+)?(\d{1,2}):(\d{2})$/);
   if (hariIniTimeMatch) {
     const hours = parseInt(hariIniTimeMatch[2]!, 10);
     const minutes = parseInt(hariIniTimeMatch[3]!, 10);
@@ -98,7 +98,7 @@ const askDeadline = async (ctx: MyContext) => {
     'Kapan deadline-nya?\n\n' +
     '📅 Format yang didukung:\n' +
     '• "hari ini" → hari ini jam 23:59\n' +
-    '• "hari ini 15:00" → hari ini jam 15:00\n' +
+    '• "hari ini 15:00" atau "hari ini jam 15:00"\n' +
     '• "2026-09-25" → tanggal tertentu jam 23:59\n' +
     '• "2026-09-25 15:00" → tanggal & jam tertentu\n' +
     '• "skip" → tidak ada deadline'
@@ -196,16 +196,16 @@ const saveTasks = async (ctx: MyContext) => {
         .join('\n');
 
       let reply =
-        `✅ Berhasil menambahkan *${successCount}* task!\n` +
+        `✅ Berhasil menambahkan *${successCount}* task\!\n` +
         `⏰ Deadline: *${escapeMarkdown(deadlineDisplay)}*\n\n` +
         `📋 Daftar task:\n${escapeMarkdown(taskListDisplay)}`;
 
       if (titles.length > 10) {
-        reply += `\n_...dan ${titles.length - 10} task lainnya_`;
+        reply += `\n_\.\.\.dan ${titles.length - 10} task lainnya_`;
       }
 
       if (failedTitles.length > 0) {
-        reply += `\n\n⚠️ Gagal menyimpan ${failedTitles.length} task.`;
+        reply += `\n\n⚠️ Gagal menyimpan ${failedTitles.length} task\.`;
       }
 
       await ctx.reply(reply, { parse_mode: 'MarkdownV2' });
