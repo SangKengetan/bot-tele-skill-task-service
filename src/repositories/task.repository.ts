@@ -322,8 +322,8 @@ export class TaskRepository {
        FROM tasks t
        JOIN users u ON t.user_id = u.id
        WHERE (
-         DATE(t.scheduled_at) = CURRENT_DATE OR
-         DATE(t.deadline_at) = CURRENT_DATE
+         DATE(t.scheduled_at AT TIME ZONE 'Asia/Makassar') = (NOW() AT TIME ZONE 'Asia/Makassar')::date OR
+         DATE(t.deadline_at AT TIME ZONE 'Asia/Makassar') = (NOW() AT TIME ZONE 'Asia/Makassar')::date
        )
        AND t.status = 'pending'
        ORDER BY t.user_id, t.deadline_at ASC NULLS LAST`
