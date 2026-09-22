@@ -16,11 +16,11 @@ export class DailyReminderJob {
   constructor(
     private taskRepo: TaskRepository,
     private notificationService: NotificationService
-  ) {}
+  ) { }
 
   start(): void {
     // Run at 08:00, 11:00, 16:00, 17:00, 21:00 in Asia/Makassar
-    const cronExpression = '0 8,11,16,17,21 * * *';
+    const cronExpression = '0 8,11,16,21 * * *';
 
     logger.info(
       { cronExpression, timezone: 'Asia/Makassar' },
@@ -62,7 +62,7 @@ export class DailyReminderJob {
 
       for (const task of pendingTasks) {
         if (!task.telegram_user_id) continue;
-        
+
         const userTasks = tasksByUser.get(task.telegram_user_id) || [];
         userTasks.push(task);
         tasksByUser.set(task.telegram_user_id, userTasks);

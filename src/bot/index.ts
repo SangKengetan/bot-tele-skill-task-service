@@ -2,7 +2,6 @@ import { Telegraf, Scenes, session } from 'telegraf';
 import { MyContext } from './context';
 import { env } from '../config/env';
 import { addTaskWizard } from './scenes/addTask.scene';
-import { addHarianWizard } from './scenes/addHarian.scene';
 import { startCommand } from './commands/start.command';
 import { listCommand } from './commands/list.command';
 import { todayCommand } from './commands/today.command';
@@ -34,7 +33,7 @@ export const setupBot = (
   });
 
   // Initialize stage with scenes
-  const stage = new Scenes.Stage<MyContext>([addTaskWizard, addHarianWizard]);
+  const stage = new Scenes.Stage<MyContext>([addTaskWizard]);
 
   // Apply middlewares
   bot.use(session());
@@ -53,7 +52,6 @@ export const setupBot = (
   
   // Enter wizard command
   bot.command('addtask', (ctx) => ctx.scene.enter('ADD_TASK_WIZARD'));
-  bot.command('addharian', (ctx) => ctx.scene.enter('ADD_HARIAN_WIZARD'));
 
   // Register callback query handler for inline keyboards
   bot.on('callback_query', handleCallbackQuery);
@@ -64,8 +62,7 @@ export const setupBot = (
   // Set Telegram Menu Commands
   bot.telegram.setMyCommands([
     { command: 'start', description: 'Lihat menu utama' },
-    { command: 'addtask', description: 'Tambah task baru' },
-    { command: 'addharian', description: 'Tambah task harian sekaligus' },
+    { command: 'addtask', description: 'Tambah task (bisa sekaligus banyak)' },
     { command: 'tasks', description: 'Daftar semua task aktif' },
     { command: 'today', description: 'Task hari ini' },
     { command: 'overdue', description: 'Task yang telat' },

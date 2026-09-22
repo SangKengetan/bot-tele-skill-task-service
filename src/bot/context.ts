@@ -6,7 +6,7 @@ import { ReminderRepository } from '../repositories/reminder.repository';
 
 interface WizardSession extends Scenes.WizardSessionData {
   taskData: {
-    title?: string;
+    titles?: string[];
     deadline_at?: string;
   };
 }
