@@ -199,12 +199,12 @@ const saveTasks = async (ctx: MyContext) => {
         .join('\n');
 
       let reply =
-        `✅ Berhasil menambahkan *${titles.length}* task\!\n` +
+        `✅ Berhasil menambahkan *${titles.length}* task\\!\n` +
         `⏰ Deadline: *${escapeMarkdown(deadlineDisplay)}*\n\n` +
         `📋 Daftar task:\n${escapeMarkdown(taskListDisplay)}`;
 
       if (titles.length > 10) {
-        reply += `\n_\.\.\.dan ${titles.length - 10} task lainnya_`;
+        reply += `\n_\\.\\.\\.dan ${titles.length - 10} task lainnya_`;
       }
 
       await ctx.reply(reply, { parse_mode: 'MarkdownV2' });
