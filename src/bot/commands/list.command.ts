@@ -1,3 +1,4 @@
+import { Markup } from 'telegraf';
 import { MyContext } from '../context';
 import { resolveUser, formatTaskItem, buildPendingTaskKeyboard } from '../utils/format.util';
 import { logger } from '../../utils/logger';
@@ -34,8 +35,21 @@ export const listCommand = async (ctx: MyContext): Promise<void> => {
         ...buildPendingTaskKeyboard(task.id),
       });
     }
+
+    // Pagination: show load-more button if there are more tasks
+    if (result.pagination.total > result.tasks.length) {
+      await ctx.reply(
+        `_Menampilkan 1\u2013${result.tasks.length} dari ${result.pagination.total} task aktif._`,
+        {
+          parse_mode: 'Markdown',
+          ...Markup.inlineKeyboard([[
+            Markup.button.callback('📋 Muat 10 Berikutnya', `tasks_page:10`),
+          ]]),
+        }
+      );
+    }
   } catch (err) {
     logger.error({ err }, 'Error in /tasks command');
-    await ctx.reply('Maaf, terjadi kesalahan saat mengambil daftar task.');
+    await ctx.reply('❌ Terjadi kesalahan saat mengambil task.\nCoba ketik /tasks lagi untuk memuat ulang.');
   }
 };

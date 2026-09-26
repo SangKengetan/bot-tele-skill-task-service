@@ -15,7 +15,8 @@ import { buildReminderOptionsKeyboard, formatDate, escapeMarkdown } from '../uti
  *  - "YYYY-MM-DD"             → specific date at 23:59
  */
 function parseDeadlineInput(input: string): Date | null | undefined {
-  const trimmed = input.trim();
+  // Hapus tanda kutip di awal dan akhir jika user terlanjur mengetiknya
+  let trimmed = input.trim().replace(/^["'](.*)["']$/, '$1').trim();
   const lower = trimmed.toLowerCase();
 
   if (lower === 'skip') {
@@ -84,10 +85,20 @@ const askDeadline = async (ctx: MyContext) => {
   }
 
   const input = ctx.message.text.trim();
-  const taskLines = input.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+  const taskLines = input.split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    // Spam protection: Limit line length to 255 chars
+    .map(line => line.length > 255 ? line.substring(0, 252) + '...' : line);
 
   if (taskLines.length === 0) {
     await ctx.reply('Daftar task kosong. Coba kirimkan lagi.');
+    return;
+  }
+
+  // Spam protection: Limit number of tasks per message
+  if (taskLines.length > 20) {
+    await ctx.reply('Maksimal menambahkan 20 task sekaligus untuk mencegah spam. Silakan kurangi daftar Anda.');
     return;
   }
 
@@ -96,12 +107,12 @@ const askDeadline = async (ctx: MyContext) => {
   await ctx.reply(
     `Oke, ${taskLines.length} task dicatat ✍️\n\n` +
     'Kapan deadline-nya?\n\n' +
-    '📅 Format yang didukung:\n' +
-    '• "hari ini" → hari ini jam 23:59\n' +
-    '• "hari ini 15:00" atau "hari ini jam 15:00"\n' +
-    '• "2026-09-25" → tanggal tertentu jam 23:59\n' +
-    '• "2026-09-25 15:00" → tanggal & jam tertentu\n' +
-    '• "skip" → tidak ada deadline'
+    '📅 Format yang didukung (ketik tanpa tanda kutip):\n' +
+    '• hari ini → hari ini jam 23:59\n' +
+    '• hari ini 15:00 atau hari ini jam 15:00\n' +
+    '• 2026-09-25 → tanggal tertentu jam 23:59\n' +
+    '• 2026-09-25 15:00 → tanggal & jam tertentu\n' +
+    '• skip → tidak ada deadline'
   );
 
   return ctx.wizard.next();
@@ -120,11 +131,11 @@ const saveTasks = async (ctx: MyContext) => {
 
   if (parsedDeadline === undefined) {
     await ctx.reply(
-      'Format deadline tidak valid. Coba lagi:\n' +
-      '• "hari ini"\n' +
-      '• "hari ini 15:00"\n' +
-      '• "2026-09-25 15:00"\n' +
-      '• "skip"'
+      'Format deadline tidak valid. Coba lagi (ketik tanpa tanda kutip):\n' +
+      '• hari ini\n' +
+      '• hari ini 15:00\n' +
+      '• 2026-09-25 15:00\n' +
+      '• skip'
     );
     return; // Stay in this step
   }
@@ -173,22 +184,14 @@ const saveTasks = async (ctx: MyContext) => {
       }
     } else {
       // Multiple tasks → batch create & show summary
-      let successCount = 0;
-      const failedTitles: string[] = [];
+      const dtos = titles.map(title => ({
+        user_id: user.id,
+        title,
+        priority: 'medium' as const,
+        deadline_at: deadlineAt,
+      }));
 
-      for (const title of titles) {
-        try {
-          await ctx.taskService.createTask({
-            user_id: user.id,
-            title,
-            priority: 'medium',
-            deadline_at: deadlineAt,
-          });
-          successCount++;
-        } catch {
-          failedTitles.push(title);
-        }
-      }
+      await ctx.taskService.createManyTasks(dtos);
 
       const taskListDisplay = titles
         .slice(0, 10) // cap display to avoid too-long messages
@@ -196,16 +199,12 @@ const saveTasks = async (ctx: MyContext) => {
         .join('\n');
 
       let reply =
-        `✅ Berhasil menambahkan *${successCount}* task\!\n` +
+        `✅ Berhasil menambahkan *${titles.length}* task\!\n` +
         `⏰ Deadline: *${escapeMarkdown(deadlineDisplay)}*\n\n` +
         `📋 Daftar task:\n${escapeMarkdown(taskListDisplay)}`;
 
       if (titles.length > 10) {
         reply += `\n_\.\.\.dan ${titles.length - 10} task lainnya_`;
-      }
-
-      if (failedTitles.length > 0) {
-        reply += `\n\n⚠️ Gagal menyimpan ${failedTitles.length} task\.`;
       }
 
       await ctx.reply(reply, { parse_mode: 'MarkdownV2' });

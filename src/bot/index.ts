@@ -15,6 +15,7 @@ import { UserService } from '../services/user.service';
 import { TaskService } from '../services/task.service';
 import { ReminderService } from '../services/reminder.service';
 import { ReminderRepository } from '../repositories/reminder.repository';
+import { rateLimitMiddleware } from './middleware/rate-limit.middleware';
 
 export const setupBot = (
   bot: Telegraf<MyContext>,
@@ -37,6 +38,7 @@ export const setupBot = (
 
   // Apply middlewares
   bot.use(session());
+  bot.use(rateLimitMiddleware(1000)); // 1 message per second limit
   bot.use(stage.middleware());
 
   // Apply commands

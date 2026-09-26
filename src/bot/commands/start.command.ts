@@ -19,23 +19,24 @@ export const startCommand = async (ctx: MyContext): Promise<void> => {
     });
 
     await ctx.reply(
-      `Halo ${displayName}! Selamat datang di Task Manager Bot. 🤖\n\n` +
-      `Saya bisa membantu Anda mencatat tugas dan memberikan pengingat.\n\n` +
+      `Halo ${displayName}\u0021 Selamat datang di Task Manager Bot\. \uD83E\uDD16\n\n` +
+      `Saya bisa membantu Anda mencatat tugas dan memberikan pengingat\.\n\n` +
       `Gunakan perintah berikut:\n` +
-      `📌 *Kelola Task:*\n` +
-      `/addtask - Menambah task baru\n` +
-      `/addharian - Menambah task harian sekaligus\n` +
-      `/tasks - Melihat daftar task aktif\n` +
-      `/today - Task hari ini\n` +
-      `/overdue - Task yang telat\n` +
-      `/completed - Riwayat task selesai\n` +
-      `/search <kata> - Cari task\n\n` +
-      `📊 *Lainnya:*\n` +
-      `/reminders - Kelola pengingat aktif\n` +
-      `/stats - Ringkasan statistik\n`
+      `\uD83D\uDCCC *Kelola Task:*\n` +
+      `/addtask \- Menambah task baru\n` +
+      `/addharian \- Menambah task harian sekaligus\n` +
+      `/tasks \- Melihat daftar task aktif\n` +
+      `/today \- Task hari ini\n` +
+      `/overdue \- Task yang telat\n` +
+      `/completed \- Riwayat task selesai\n` +
+      `/search <kata> \- Cari task\n\n` +
+      `\uD83D\uDCCA *Lainnya:*\n` +
+      `/reminders \- Kelola pengingat aktif\n` +
+      `/stats \- Ringkasan statistik\n`,
+      { parse_mode: 'MarkdownV2' }
     );
   } catch (err) {
     logger.error({ err }, 'Error in /start command');
-    await ctx.reply('Maaf, terjadi kesalahan saat menyiapkan akun Anda.');
+    await ctx.reply('Maaf, terjadi kesalahan. Coba ketik /start lagi.');
   }
 };

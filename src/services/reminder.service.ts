@@ -2,7 +2,7 @@ import { ReminderRepository } from '../repositories/reminder.repository';
 import { TaskRepository } from '../repositories/task.repository';
 import { TaskHistoryRepository } from '../repositories/task-history.repository';
 import { UserRepository } from '../repositories/user.repository';
-import { Reminder, ReminderFilters } from '../types/reminder.types';
+import { Reminder, ReminderWithTask, ReminderFilters } from '../types/reminder.types';
 import { CreateReminderDto, ReminderQueryDto } from '../schemas/reminder.schema';
 import { NotFoundError, ValidationError } from '../utils/errors';
 import { PaginationMeta } from '../utils/response';
@@ -48,7 +48,7 @@ export class ReminderService {
     return reminder;
   }
 
-  async listReminders(dto: ReminderQueryDto): Promise<{ reminders: Reminder[]; pagination: PaginationMeta }> {
+  async listReminders(dto: ReminderQueryDto): Promise<{ reminders: ReminderWithTask[]; pagination: PaginationMeta }> {
     const filters: ReminderFilters = {
       user_id: dto.user_id,
       status: dto.status,

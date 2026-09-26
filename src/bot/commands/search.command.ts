@@ -57,6 +57,6 @@ export const searchCommand = async (ctx: MyContext): Promise<void> => {
     }
   } catch (err) {
     logger.error({ err }, 'Error in /search command');
-    await ctx.reply('Maaf, terjadi kesalahan saat mencari task.');
+    await ctx.reply('❌ Terjadi kesalahan saat mencari task.\nCoba ketik /search lagi.');
   }
 };

@@ -28,6 +28,6 @@ export const todayCommand = async (ctx: MyContext): Promise<void> => {
     }
   } catch (err) {
     logger.error({ err }, 'Error in /today command');
-    await ctx.reply('Maaf, terjadi kesalahan saat mengambil task hari ini.');
+    await ctx.reply('❌ Terjadi kesalahan saat mengambil task hari ini.\nCoba ketik /today lagi.');
   }
 };

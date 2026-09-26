@@ -322,12 +322,42 @@ export class TaskRepository {
        FROM tasks t
        JOIN users u ON t.user_id = u.id
        WHERE (
-         DATE(t.scheduled_at AT TIME ZONE 'Asia/Makassar') = (NOW() AT TIME ZONE 'Asia/Makassar')::date OR
-         DATE(t.deadline_at AT TIME ZONE 'Asia/Makassar') = (NOW() AT TIME ZONE 'Asia/Makassar')::date
+         (t.scheduled_at >= (NOW() AT TIME ZONE 'Asia/Makassar')::date AT TIME ZONE 'Asia/Makassar' AND
+          t.scheduled_at < ((NOW() AT TIME ZONE 'Asia/Makassar')::date + interval '1 day') AT TIME ZONE 'Asia/Makassar')
+         OR
+         (t.deadline_at >= (NOW() AT TIME ZONE 'Asia/Makassar')::date AT TIME ZONE 'Asia/Makassar' AND
+          t.deadline_at < ((NOW() AT TIME ZONE 'Asia/Makassar')::date + interval '1 day') AT TIME ZONE 'Asia/Makassar')
        )
        AND t.status = 'pending'
        ORDER BY t.user_id, t.deadline_at ASC NULLS LAST`
     );
     return result.rows;
+  }
+
+  async createMany(inputs: CreateTaskInput[]): Promise<void> {
+    if (inputs.length === 0) return;
+
+    const values: string[] = [];
+    const params: unknown[] = [];
+    let paramIdx = 1;
+
+    for (const input of inputs) {
+      values.push(`($${paramIdx++}, $${paramIdx++}, $${paramIdx++}, $${paramIdx++}, $${paramIdx++}, $${paramIdx++})`);
+      params.push(
+        input.user_id,
+        input.title,
+        input.description ?? null,
+        input.priority ?? 'medium',
+        input.scheduled_at ? new Date(input.scheduled_at) : null,
+        input.deadline_at ? new Date(input.deadline_at) : null
+      );
+    }
+
+    const query = `
+      INSERT INTO tasks (user_id, title, description, priority, scheduled_at, deadline_at)
+      VALUES ${values.join(', ')}
+    `;
+
+    await this.pool.query(query, params);
   }
 }

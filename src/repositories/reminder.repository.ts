@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { Reminder, ReminderStatus, ReminderWithContext, ReminderFilters } from '../types/reminder.types';
+import { Reminder, ReminderStatus, ReminderWithContext, ReminderWithTask, ReminderFilters } from '../types/reminder.types';
 
 export class ReminderRepository {
   constructor(private pool: Pool) {}
@@ -22,25 +22,25 @@ export class ReminderRepository {
     return result.rows[0] ?? null;
   }
 
-  async findMany(filters: ReminderFilters): Promise<{ rows: Reminder[]; total: number }> {
+  async findMany(filters: ReminderFilters): Promise<{ rows: ReminderWithTask[]; total: number }> {
     const conditions: string[] = [];
     const params: unknown[] = [];
     let paramIdx = 1;
 
     if (filters.user_id) {
-      conditions.push(`user_id = $${paramIdx++}`);
+      conditions.push(`r.user_id = $${paramIdx++}`);
       params.push(filters.user_id);
     }
     if (filters.status) {
-      conditions.push(`status = $${paramIdx++}`);
+      conditions.push(`r.status = $${paramIdx++}`);
       params.push(filters.status);
     }
     if (filters.from) {
-      conditions.push(`remind_at >= $${paramIdx++}`);
+      conditions.push(`r.remind_at >= $${paramIdx++}`);
       params.push(new Date(`${filters.from}T00:00:00.000Z`));
     }
     if (filters.to) {
-      conditions.push(`remind_at <= $${paramIdx++}`);
+      conditions.push(`r.remind_at <= $${paramIdx++}`);
       params.push(new Date(`${filters.to}T23:59:59.999Z`));
     }
 
@@ -49,14 +49,22 @@ export class ReminderRepository {
     const offset = filters.offset ?? 0;
 
     const countResult = await this.pool.query<{ count: string }>(
-      `SELECT COUNT(*) FROM reminders ${where}`,
+      `SELECT COUNT(*) FROM reminders r ${where}`,
       params
     );
     const total = parseInt(countResult.rows[0]?.count ?? '0', 10);
 
-    const rowsResult = await this.pool.query<Reminder>(
-      `SELECT * FROM reminders ${where}
-       ORDER BY remind_at ASC
+    const rowsResult = await this.pool.query<ReminderWithTask>(
+      `SELECT r.*,
+              t.title AS task_title,
+              t.description AS task_description,
+              t.priority AS task_priority,
+              t.status AS task_status,
+              t.deadline_at AS task_deadline_at
+       FROM reminders r
+       LEFT JOIN tasks t ON r.task_id = t.id
+       ${where}
+       ORDER BY r.remind_at ASC
        LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
       [...params, limit, offset]
     );

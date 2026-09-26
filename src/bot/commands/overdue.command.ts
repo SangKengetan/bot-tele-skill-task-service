@@ -28,6 +28,6 @@ export const overdueCommand = async (ctx: MyContext): Promise<void> => {
     }
   } catch (err) {
     logger.error({ err }, 'Error in /overdue command');
-    await ctx.reply('Maaf, terjadi kesalahan saat mengambil task overdue.');
+    await ctx.reply('❌ Terjadi kesalahan saat mengambil task overdue.\nCoba ketik /overdue lagi.');
   }
 };

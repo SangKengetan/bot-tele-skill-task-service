@@ -65,6 +65,26 @@ export class TaskService {
     return task;
   }
 
+  async createManyTasks(dtos: CreateTaskDto[]): Promise<void> {
+    if (dtos.length === 0) return;
+    
+    // We assume the caller (bot) has already verified the user exists.
+    // For bulk creation, we format inputs directly.
+    const inputs = dtos.map(dto => ({
+      user_id: dto.user_id,
+      title: dto.title,
+      description: dto.description,
+      priority: dto.priority,
+      scheduled_at: dto.scheduled_at ?? null,
+      deadline_at: dto.deadline_at ?? null,
+    }));
+
+    await this.taskRepo.createMany(inputs);
+
+    // We skip history recording for bulk insert to avoid massive inserts,
+    // or you could implement createMany in historyRepo as well.
+  }
+
   // ─── Read ────────────────────────────────────────────────────────────────────
 
   async getTask(id: string, userId?: string): Promise<Task> {

@@ -19,7 +19,7 @@ export class DailyReminderJob {
   ) { }
 
   start(): void {
-    // Run at 08:00, 11:00, 16:00, 17:00, 21:00 in Asia/Makassar
+    // Run at 08:00, 11:00, 16:00, 21:00 in Asia/Makassar
     const cronExpression = '0 8,11,16,21 * * *';
 
     logger.info(
@@ -68,10 +68,24 @@ export class DailyReminderJob {
         tasksByUser.set(task.telegram_user_id, userTasks);
       }
 
-      logger.info({ userCount: tasksByUser.size }, 'Sending daily reminders to users');
+      logger.info({ userCount: tasksByUser.size }, 'Sending daily reminders to users in chunks');
 
-      for (const [telegramUserId, tasks] of tasksByUser.entries()) {
-        await this.notificationService.sendDailySummary(telegramUserId, tasks);
+      const entries = Array.from(tasksByUser.entries());
+      const CHUNK_SIZE = 30; // Max concurrent to avoid Telegram Rate Limits (max 30 msgs/sec limit generally)
+
+      for (let i = 0; i < entries.length; i += CHUNK_SIZE) {
+        const chunk = entries.slice(i, i + CHUNK_SIZE);
+        
+        await Promise.allSettled(
+          chunk.map(([telegramUserId, tasks]) =>
+            this.notificationService.sendDailySummary(telegramUserId, tasks)
+          )
+        );
+
+        // Optional: slight delay between chunks if userbase is massive
+        if (i + CHUNK_SIZE < entries.length) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
     } catch (err) {
       logger.error({ err }, 'Error in daily reminder job processing loop');

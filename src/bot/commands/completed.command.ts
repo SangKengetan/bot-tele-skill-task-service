@@ -1,3 +1,4 @@
+import { Markup } from 'telegraf';
 import { MyContext } from '../context';
 import { resolveUser, formatDate, buildCompletedTaskKeyboard, escapeMarkdown } from '../utils/format.util';
 import { logger } from '../../utils/logger';
@@ -29,8 +30,21 @@ export const completedCommand = async (ctx: MyContext): Promise<void> => {
         ...buildCompletedTaskKeyboard(task.id),
       });
     }
+
+    // If a full page was returned, there might be more
+    if (tasks.length === 10) {
+      await ctx.reply(
+        `_Menampilkan 10 task selesai terbaru._`,
+        {
+          parse_mode: 'Markdown',
+          ...Markup.inlineKeyboard([[
+            Markup.button.callback('📋 Muat 10 Berikutnya', `completed_page:10`),
+          ]]),
+        }
+      );
+    }
   } catch (err) {
     logger.error({ err }, 'Error in /completed command');
-    await ctx.reply('Maaf, terjadi kesalahan saat mengambil task selesai.');
+    await ctx.reply('❌ Terjadi kesalahan saat mengambil task selesai.\nCoba ketik /completed lagi.');
   }
 };

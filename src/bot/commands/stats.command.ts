@@ -31,6 +31,6 @@ export const statsCommand = async (ctx: MyContext): Promise<void> => {
     await ctx.reply(message, { parse_mode: 'Markdown' });
   } catch (err) {
     logger.error({ err }, 'Error in /stats command');
-    await ctx.reply('Maaf, terjadi kesalahan saat mengambil statistik.');
+    await ctx.reply('❌ Terjadi kesalahan saat mengambil statistik.\nCoba ketik /stats lagi.');
   }
 };

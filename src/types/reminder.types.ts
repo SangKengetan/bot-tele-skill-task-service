@@ -30,3 +30,13 @@ export interface ReminderWithContext extends Reminder {
   telegram_user_id: string;
   user_timezone: string;
 }
+
+/** Reminder with joined task information for listing & bot UI */
+export interface ReminderWithTask extends Reminder {
+  task_title?: string;
+  task_description?: string | null;
+  task_priority?: string;
+  task_status?: string;
+  task_deadline_at?: Date | null;
+}
+
